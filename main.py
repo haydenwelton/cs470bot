@@ -1,9 +1,6 @@
 #  filename: main.py
 #  author: Yonah Aviv
-#  date created: 2020-11-10 6:21 p.m.
-#  last modified: 2020-11-18
-#  Pydash: Similar to Geometry Dash, a rhythm based platform game, but programmed using the pygame library in Python
-
+#  AI modifications by: Hayden and Sophie Welton
 
 """CONTROLS
 Anywhere -> ESC: exit
@@ -88,13 +85,9 @@ class GameTimer:
         return time.time() - self.start_time
 
 
-
-
 # GLOBAL VARIABLES
 global_timer = GameTimer()
 death_counter = 0
-
-
 
 
 class RLAgent:
