@@ -1,6 +1,9 @@
 #  filename: main.py
 #  author: Yonah Aviv
-#  AI modifications by: Hayden and Sophie Welton
+#  date created: 2020-11-10 6:21 p.m.
+#  last modified: 2020-11-18
+#  Pydash: Similar to Geometry Dash, a rhythm based platform game, but programmed using the pygame library in Python
+
 
 """CONTROLS
 Anywhere -> ESC: exit
@@ -85,26 +88,31 @@ class GameTimer:
         return time.time() - self.start_time
 
 
+
+
 # GLOBAL VARIABLES
 global_timer = GameTimer()
 death_counter = 0
+experiment_offset = 0.05  # Reset experiment offset to default
 
 
 class RLAgent:
-    def __init__(self, state_size, action_size, timer, jump_memory):
-        self.state_size = state_size
-        self.action_size = action_size
-        self.q_table = np.zeros((state_size, action_size))  # Q-table for state-action values
-        self.epsilon = 1.0  # Exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
-        self.learning_rate = 0.1
-        self.gamma = 0.95  # Discount factor
+    def __init__(self, state_size, action_size, timer, jump_memory, experiment_offset):
         self.timer = timer
         self.last_death_time = None  # Tracks the time of the last death
-        self.experiment_offset = 0.1  # Fraction of a second before death to try jumping
         self.success_updated = False  # Flag to track if success has been updated
         self.jump_time = jump_time
+        self.last_jump = 0
+        self.has_jump_time = True
+        self.onGroundAgent = True
+        self.has_jumped = False
+
+    def adjust_offset(self):
+        global experiment_offset
+        experiment_offset += 0.05
+        if experiment_offset >= 0.5:
+            experiment_offset = 0.05
+        print(f"Offset: {experiment_offset}")
 
 
     def should_jump(self):
@@ -112,36 +120,35 @@ class RLAgent:
         current_time = self.timer.get_elapsed_time()
 
         if self.last_death_time is not None:
-            if (current_time + self.experiment_offset) > self.last_death_time:
+            if (current_time + experiment_offset > self.last_death_time) and current_time < (self.last_death_time + 0.000000000001):
                 print(f"Jump time: {self.last_death_time}")
+                return True
+
+        for num in jump_memory:
+            if (current_time - 0.05) <= num <= (current_time + 0.05):
+                print(f"Jump Memory time: {num}")
                 return True
         return False
 
     def update_jump_memory(self, success):
         """Update memory with successful jumps or adjust experiment offset."""
         current_time = self.timer.get_elapsed_time()
-
+        global experiment_offset
+        global death_counter
         if success:
             # If the jump was successful, save it in memory and reset experimentation
              # Get the largest timestamp in memory
-            if len(jump_memory) == 0:
-                print(f"Adding successful jump timestamp: {current_time}")
-                jump_memory.append(current_time)
-                print(f"Size of Jump Memory: {len(jump_memory)}")
-                self.success_updated = False
-
-            else:
-                print("Entered else")
-                max_timestamp = max(jump_memory)
-                # Only add the new timestamp if it's greater than the largest one
-                print(current_time)
-                print(max_timestamp)
-                if current_time > max_timestamp:
-                    print(f"Adding successful jump timestamp: {current_time}")
-                    jump_memory.append(current_time)
-                    self.success_updated = False
+            print("Entered else")
+            print(f"Current time: {current_time}")
+            print(f"Last Jump success: {self.last_jump}")
+            #for num in jump_memory:
+                #if ((self.last_jump - 0.05) <= num <= (self.last_jump + 0.05)) == False:
+            print(f"Adding successful jump timestamp: {self.last_jump + 0.05}")
+            jump_memory.append(self.last_jump)
+            experiment_offset = 0.1
+            death_counter = 0
+            self.success_updated = False
             self.last_death_time = None  # Reset death tracking after success
-            self.experiment_offset = 0.1  # Reset experiment offset to default
         else:
             # If the jump failed, set the last death time and adjust offset for next attempt
             print(f"Player died at {current_time}. Adjusting next jump timing.")
@@ -154,10 +161,10 @@ class RLAgent:
 
         if self.last_death_time is None:
             return
-        elif self.last_death_time is not None and current_time > self.last_death_time + 0.5:
+        elif self.last_death_time is not None and (current_time > self.last_death_time + 0.05):
             # Update memory as success once when passing last death time
             self.update_jump_memory(success=True)
-            self.success_updated = True  # Set the flag to prevent further updates
+            self.success_updated = True
 
 
 
@@ -193,7 +200,7 @@ class Player(pygame.sprite.Sprite):
         self.isjump = False  # is the player jumping?
         self.vel = Vector2(0, 0)  # velocity starts at zero
         self.jump_memory = jump_memory
-        self.agent = RLAgent(32, 32, global_timer, self.jump_memory)
+        self.agent = RLAgent(32, 32, global_timer, self.jump_memory, experiment_offset)
 
     def draw_particle_trail(self, x, y, color=(255, 255, 255)):
         """draws a trail of particle-rects in a line at random positions behind the player"""
@@ -219,7 +226,7 @@ class Player(pygame.sprite.Sprite):
             if pygame.sprite.collide_rect(self, p):
                 """pygame sprite builtin collision method,
                 sees if player is colliding with any obstacles"""
-                if isinstance(p, Orb) and (keys[pygame.K_UP] or keys[pygame.K_SPACE]):
+                if (isinstance(p, Orb) and (keys[pygame.K_UP] or keys[pygame.K_SPACE])) or isinstance(p, Orb):
                     pygame.draw.circle(alpha_surf, (255, 255, 0), p.rect.center, 18)
                     screen.blit(pygame.image.load("images/editor-0.9s-47px.gif"), p.rect.center)
                     self.jump_amount = 12  # gives a little boost when hit orb
@@ -231,6 +238,7 @@ class Player(pygame.sprite.Sprite):
 
                 if isinstance(p, Spike):
                     self.died = True  # die on spike
+                    print("Died to Spike")
 
                 if isinstance(p, Coin):
                     # keeps track of all coins throughout the whole game(total of 6 is possible)
@@ -249,6 +257,9 @@ class Player(pygame.sprite.Sprite):
 
                         # set self.onGround to true because player collided with the ground
                         self.onGround = True
+                        self.agent.has_jumped = False
+                        self.agent.has_jump_time = True
+
 
                         # reset jump
                         self.isjump = False
@@ -259,9 +270,14 @@ class Player(pygame.sprite.Sprite):
                         """otherwise, if player collides with a block, he/she dies."""
                         self.vel.x = 0
                         self.rect.right = p.rect.left  # dont let player go through walls
+                        print("Died to Wall")
                         self.died = True
 
     def jump(self):
+        current_time = self.agent.timer.get_elapsed_time()
+        self.agent.last_jump = current_time
+        print(f"Last Jump: {self.agent.last_jump}")
+        self.agent.has_jumped = True
         self.vel.y = -self.jump_amount  # players vertical velocity is negative so ^
 
     def update(self):
@@ -285,6 +301,7 @@ class Player(pygame.sprite.Sprite):
 
         # assuming player in the air, and if not it will be set to inversed after collide
         self.onGround = False
+        self.agent.onGroundAgent = False
 
         # do y-axis collisions
         self.collide(self.vel.y, self.platforms)
@@ -458,15 +475,25 @@ def won_screen():
 
 def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
     current_time = agent_input.timer.get_elapsed_time()
-
+    global death_counter
     """Handle win or death and reset timer."""
     if won:
+        jump_memory.clear()
         won_screen()
     if died:
         reset()
         player.agent.last_death_time = current_time
         agent_input.update_jump_memory(success=False)
+        death_counter += 1
+        print(f"Death counter: {death_counter}")
+        if death_counter == 4:
+            death_counter = 0
+            if len(jump_memory) > 0:
+                jump_memory.pop()
+                print(f"REMOVED {player.agent.last_jump} FROM JUMP MEMORY")
+
         print("Player Died")
+        player.agent.adjust_offset()
         global_timer.start()
 
 
@@ -501,6 +528,7 @@ def start_screen():
 
         level_memo = font.render(f"Level {level + 1}.", True, (255, 255, 0))
         screen.blit(level_memo, (100, 200))
+        global_timer.start()
 
 
 def reset():
@@ -631,6 +659,7 @@ CameraX = 0
 attempts = 0
 coins = 0
 angle = 0
+#SELECT LEVEL
 level = 0
 
 # list
@@ -638,8 +667,9 @@ particles = []
 orbs = []
 win_cubes = []
 
+
 # initialize level with
-levels = ["level_0.csv", "level_1.csv", "level_2.csv"]
+levels = ["level_0.csv", "level_1.csv", "level_2.csv", "level_3.csv", "level_4.csv", "level_5.csv"]
 level_list = block_map(levels[level])
 level_width = (len(level_list[0]) * 32)
 level_height = len(level_list) * 32
@@ -684,11 +714,6 @@ while not done:
 
     # If player dies near an obstacle, attempt to learn from it by jumping earlier next time
     # Update jump memory based on success or failure of actions
-    if player.died:
-        death_counter += 1
-        print(death_counter)
-
-
 
 
     # Get current state (discretized player position and obstacle distance)
@@ -697,7 +722,6 @@ while not done:
     current_state = min(player_x + obstacle_x, state_size - 1)
 
     # Decide whether to jump based on memory and timing
-
 
     if player.agent.success_updated == False:
         player.agent.check_and_update_for_success()
