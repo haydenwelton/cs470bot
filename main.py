@@ -22,6 +22,7 @@ import numpy as np
 # import the pygame module
 import pygame
 from fontTools.merge.util import current_time
+from fontTools.misc.bezierTools import epsilon
 
 # will make it easier to use pygame functions
 from pygame.math import Vector2
@@ -43,6 +44,7 @@ start = False
 clock = pygame.time.Clock()
 jump_memory = []
 jump_time = 0
+epsilon = 0.01
 
 """
 CONSTANTS
@@ -109,9 +111,10 @@ class RLAgent:
 
     def adjust_offset(self):
         global experiment_offset
-        experiment_offset += 0.05
-        if experiment_offset >= 0.5:
-            experiment_offset = 0.05
+        # experiment_offset += 0.05
+        experiment_offset = random.uniform(0.05, 0.45)
+        # if experiment_offset >= 0.5:
+        #     experiment_offset = 0.05
         print(f"Offset: {experiment_offset}")
 
 
@@ -128,6 +131,10 @@ class RLAgent:
             if (current_time - 0.05) <= num <= (current_time + 0.05):
                 print(f"Jump Memory time: {num}")
                 return True
+
+        if random.random() < epsilon:
+            return True
+
         return False
 
     def update_jump_memory(self, success):
@@ -145,7 +152,7 @@ class RLAgent:
                 #if ((self.last_jump - 0.05) <= num <= (self.last_jump + 0.05)) == False:
             print(f"Adding successful jump timestamp: {self.last_jump + 0.05}")
             jump_memory.append(self.last_jump)
-            experiment_offset = 0.1
+            experiment_offset = 0.05
             death_counter = 0
             self.success_updated = False
             self.last_death_time = None  # Reset death tracking after success
@@ -486,10 +493,12 @@ def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
         agent_input.update_jump_memory(success=False)
         death_counter += 1
         print(f"Death counter: {death_counter}")
-        if death_counter == 4:
+        if death_counter == 3:
             death_counter = 0
             if len(jump_memory) > 0:
-                jump_memory.pop()
+                for _ in range(3):
+                    if len(jump_memory) > 0:
+                        jump_memory.pop()
                 print(f"REMOVED {player.agent.last_jump} FROM JUMP MEMORY")
 
         print("Player Died")
