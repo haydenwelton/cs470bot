@@ -112,7 +112,7 @@ class RLAgent:
     def adjust_offset(self):
         global experiment_offset
         # experiment_offset += 0.05
-        experiment_offset = random.uniform(0.05, 0.45)
+        experiment_offset += random.uniform(0.05, 0.1)
         # if experiment_offset >= 0.5:
         #     experiment_offset = 0.05
         print(f"Offset: {experiment_offset}")
@@ -124,15 +124,15 @@ class RLAgent:
 
         if self.last_death_time is not None:
             if (current_time + experiment_offset > self.last_death_time) and current_time < (self.last_death_time + 0.000000000001):
-                print(f"Jump time: {self.last_death_time}")
+                #print(f"Jump time: {self.last_death_time}")
                 return True
 
         for num in jump_memory:
             if (current_time - 0.05) <= num <= (current_time + 0.05):
-                print(f"Jump Memory time: {num}")
+                # print(f"Jump Memory time: {num}")
                 return True
 
-        if random.random() < epsilon:
+        if random.random() < epsilon and (len(jump_memory) == 0 or current_time > jump_memory[-1]):
             return True
 
         return False
@@ -498,8 +498,12 @@ def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
             if len(jump_memory) > 0:
                 for _ in range(3):
                     if len(jump_memory) > 0:
-                        jump_memory.pop()
-                print(f"REMOVED {player.agent.last_jump} FROM JUMP MEMORY")
+                        popped = jump_memory.pop()
+                        print(f"REMOVED {popped} FROM JUMP MEMORY")
+                        while popped > current_time and len(jump_memory) > 0:
+                            popped = jump_memory.pop()
+                            print(f"REMOVED {popped} FROM JUMP MEMORY")
+
 
         print("Player Died")
         player.agent.adjust_offset()
