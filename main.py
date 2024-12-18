@@ -70,13 +70,13 @@ class GameTimer:
 
     def start(self):
         """Start or reset the timer."""
-        self.start_time = time.time()
+        self.start_time = time.perf_counter()
 
     def get_elapsed_time(self):
         """Get the elapsed time since the timer started."""
         if self.start_time is None:
             return 0
-        return time.time() - self.start_time
+        return time.perf_counter() - self.start_time
 
 
 # GLOBAL VARIABLES
