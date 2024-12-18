@@ -105,7 +105,7 @@ class RLAgent:
         self.last_death_time = None  # Tracks the time of the last death
         self.success_updated = False  # Flag to track if success has been updated
         self.jump_time = jump_time
-        self.last_jump = 0
+        self.last_jump = []
         self.has_jump_time = True
         self.onGroundAgent = True
         self.has_jumped = False
@@ -117,7 +117,7 @@ class RLAgent:
         # experiment_offset += 0.05
         # if self.died_spike:
         if died_to_spike == False:
-            offset = random.uniform(0.05, 0.3)
+            offset = random.uniform(0.05, 0.4)
         else:
             offset = random.uniform(0.025, 0.075)
             died_to_spike = False
@@ -161,7 +161,8 @@ class RLAgent:
             #for num in jump_memory:
                 #if ((self.last_jump - 0.05) <= num <= (self.last_jump + 0.05)) == False:
             # print(f"Adding successful jump timestamp: {self.last_jump + 0.05}")
-            jump_memory.append(self.last_jump)
+            jump_memory.extend(self.last_jump)
+            self.last_jump = []
             experiment_offset = 0.05
             death_counter = 0
             self.success_updated = False
@@ -291,7 +292,8 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         current_time = self.agent.timer.get_elapsed_time()
-        self.agent.last_jump = current_time
+        if len(jump_memory) == 0 or current_time > jump_memory[-1]:
+            self.agent.last_jump.append(current_time)
         # print(f"Last Jump: {self.agent.last_jump}")
         self.agent.has_jumped = True
         self.vel.y = -self.jump_amount  # players vertical velocity is negative so ^
