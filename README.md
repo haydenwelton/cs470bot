@@ -1,55 +1,38 @@
-# Pydash
-## Pygame geometry dash
- 
-_Code by Yonah Aviv_
+# GeoDash Bot
+## Starter Code replicated from Pydash© by Yonah Aviv
+His documentation can be found [here](https://github.com/y330/Pydash/blob/main/README.md)
 
+MIT license
+
+Copyright © 2020 y330 Yonah Aviv
 
 ## Overview
-Implementation of Geometry Dash in Python 3.9 with the interactive graphics library for python, Pygame(v2.0+).
-
-
-![](https://lh3.googleusercontent.com/pw/ACtC-3fqOHMkopBQlUqSF5vjhTCL73Dp092W9VSn0QIsvJ76e-jnlT7qEkdvSpGGHHjWSg8o2cHZblSCloO9XM159oEuGqelm-PfNrs-c4bfwA9q2Seb53tGetuNUrxeRPYsDKLeBhwARyVINvZ0MMTsg-lnVQ=w796-h596-no?authuser=0)
-
-## Controls
-Up-arrow or space-bar to jump over spikes, avoid crashing into walls, and interact with orbs to jump in mid-air.
-
+Geometry Dash implementation in python with an added AI agent that learns as it goes.
 
 ## Level information
-Currently, there are 2 levels out of the box, both made using [Tiled](https://www.mapeditor.org/), a 2d tile based level editor.
+We have 6 levels, 2 of which are slightly edited version of the levels included from Aviv's repository.
 
-[Go to code](/main.py)
+The agent is able to successfully navigate the first 3 levels. 
 
+Currently, for the fourth level (Aviv's first level), it fails the last 2 seconds needed to pass the level. In theory, it could pass the fourth level with our added randomness, but chances are extremely low. 
+
+The agent is also able to pass the 5th level, thanks to added randomness. 
+
+And so far, the agent cannot get too far in the 6th level (Aviv's second level).
 
 ## Getting Started
 
-Download zip, then run main.py
+Download the zip
 
-Make sure you are running at least Python 3.9 and Pygame 2.0 on your machine.
-
-To install Pygame module, run the following from your command prompt/PowerShell on Windows or the equivalent program on OS X:
+You will also likely need to do the following:
 ```
+pip install numpy
 pip install pygame
 ```
 
-Then in your python file:
-```python
-import pygame
-```
-if you don't recognize anything up to here, read a tutorial for [Python](https://wiki.python.org/moin/BeginnersGuide/Download) and [Pygame](https://coderslegacy.com/python/python-pygame-tutorial/) 
+Make sure you are running at least Python 3.9 and Pygame 2.0 on your machine.
 
+Then you can run main.py
 
-  
-## Miscellaneous 
-
-  
-Disclaimer: Some assets in this project may not be owned by the owner of this repository, Yonah Aviv.
-
-Pydash is not affiliated with Geometry Dash by Robtop Games
-
-
-  
-
-------
-MIT license
-
-Copyright ©  2020 y330 Yonah Aviv
+## Controls
+You can you either the spacebar or up arrow key to make the player jump
