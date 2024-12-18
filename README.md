@@ -1,8 +1,8 @@
 # GeoDash Bot
 ## Starter Code replicated from Pydash© by Yonah Aviv
 His documentation can be found [here](https://github.com/y330/Pydash/blob/main/README.md)
-MIT license
 
+MIT license
 Copyright © 2020 y330 Yonah Aviv
 
 ## Overview
