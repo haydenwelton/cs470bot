@@ -96,6 +96,7 @@ class GameTimer:
 global_timer = GameTimer()
 death_counter = 0
 experiment_offset = 0.05  # Reset experiment offset to default
+died_to_spike = False
 
 
 class RLAgent:
@@ -108,13 +109,22 @@ class RLAgent:
         self.has_jump_time = True
         self.onGroundAgent = True
         self.has_jumped = False
+        self.died_spike = False
 
     def adjust_offset(self):
         global experiment_offset
+        global died_to_spike
         # experiment_offset += 0.05
-        experiment_offset += random.uniform(0.05, 0.1)
-        # if experiment_offset >= 0.5:
-        #     experiment_offset = 0.05
+        # if self.died_spike:
+        if died_to_spike == False:
+            offset = random.uniform(0.05, 0.3)
+        else:
+            offset = random.uniform(0.025, 0.075)
+            died_to_spike = False
+        print(f"Offset Added: {offset}")
+        experiment_offset += offset
+        if experiment_offset >= 0.5:
+            experiment_offset = 0.05
         print(f"Offset: {experiment_offset}")
 
 
@@ -145,12 +155,12 @@ class RLAgent:
         if success:
             # If the jump was successful, save it in memory and reset experimentation
              # Get the largest timestamp in memory
-            print("Entered else")
+            # print("Entered else")
             print(f"Current time: {current_time}")
             print(f"Last Jump success: {self.last_jump}")
             #for num in jump_memory:
                 #if ((self.last_jump - 0.05) <= num <= (self.last_jump + 0.05)) == False:
-            print(f"Adding successful jump timestamp: {self.last_jump + 0.05}")
+            # print(f"Adding successful jump timestamp: {self.last_jump + 0.05}")
             jump_memory.append(self.last_jump)
             experiment_offset = 0.05
             death_counter = 0
@@ -160,11 +170,11 @@ class RLAgent:
             # If the jump failed, set the last death time and adjust offset for next attempt
             print(f"Player died at {current_time}. Adjusting next jump timing.")
             self.last_death_time = current_time
+            
 
     def check_and_update_for_success(self):
         """Check if current time is greater than last death time and update success."""
         current_time = self.timer.get_elapsed_time()
-
 
         if self.last_death_time is None:
             return
@@ -172,9 +182,6 @@ class RLAgent:
             # Update memory as success once when passing last death time
             self.update_jump_memory(success=True)
             self.success_updated = True
-
-
-
 
 
 """
@@ -244,7 +251,9 @@ class Player(pygame.sprite.Sprite):
                     self.win = True
 
                 if isinstance(p, Spike):
+                    global died_to_spike
                     self.died = True  # die on spike
+                    died_to_spike = True
                     print("Died to Spike")
 
                 if isinstance(p, Coin):
@@ -283,7 +292,7 @@ class Player(pygame.sprite.Sprite):
     def jump(self):
         current_time = self.agent.timer.get_elapsed_time()
         self.agent.last_jump = current_time
-        print(f"Last Jump: {self.agent.last_jump}")
+        # print(f"Last Jump: {self.agent.last_jump}")
         self.agent.has_jumped = True
         self.vel.y = -self.jump_amount  # players vertical velocity is negative so ^
 
@@ -483,6 +492,7 @@ def won_screen():
 def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
     current_time = agent_input.timer.get_elapsed_time()
     global death_counter
+    global experiment_offset
     """Handle win or death and reset timer."""
     if won:
         jump_memory.clear()
@@ -492,9 +502,10 @@ def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
         player.agent.last_death_time = current_time
         agent_input.update_jump_memory(success=False)
         death_counter += 1
-        print(f"Death counter: {death_counter}")
+        print(f"Death counter: {death_counter}\n")
         if death_counter == 3:
             death_counter = 0
+            experiment_offset = 0.05
             if len(jump_memory) > 0:
                 for _ in range(3):
                     if len(jump_memory) > 0:
@@ -503,10 +514,10 @@ def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
                         while popped > current_time and len(jump_memory) > 0:
                             popped = jump_memory.pop()
                             print(f"REMOVED {popped} FROM JUMP MEMORY")
+        else:
+            player.agent.adjust_offset()
 
-
-        print("Player Died")
-        player.agent.adjust_offset()
+        # print("Player Died")
         global_timer.start()
 
 
