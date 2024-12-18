@@ -11,7 +11,14 @@ Geometry Dash implementation in python with an added AI agent that learns as it 
 
 ## Level information
 We have 6 levels, 2 of which are slightly edited version of the levels included from Aviv's repository.
-The agent is able to successfully navigate the first 3 levels. Currently, for the fourth level (Aviv's first level), it fails the last 2 seconds needed to pass the level. In theory, it could pass the fourth level with our added randomness, but chances are extremely low. The agent is also able to pass the 5th level, thanks to added randomness. And so far, the agent cannot get too far in the 6th level (Aviv's second level).
+
+The agent is able to successfully navigate the first 3 levels. 
+
+Currently, for the fourth level (Aviv's first level), it fails the last 2 seconds needed to pass the level. In theory, it could pass the fourth level with our added randomness, but chances are extremely low. 
+
+The agent is also able to pass the 5th level, thanks to added randomness. 
+
+And so far, the agent cannot get too far in the 6th level (Aviv's second level).
 
 ## Getting Started
 
@@ -25,4 +32,7 @@ pip install pygame
 
 Make sure you are running at least Python 3.9 and Pygame 2.0 on your machine.
 
-Then you can run pain.py
+Then you can run main.py
+
+## Controls
+You can you either the spacebar or up arrow key to make the player jump
