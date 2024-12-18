@@ -21,8 +21,6 @@ import numpy as np
 
 # import the pygame module
 import pygame
-from fontTools.merge.util import current_time
-from fontTools.misc.bezierTools import epsilon
 
 # will make it easier to use pygame functions
 from pygame.math import Vector2
