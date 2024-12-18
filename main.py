@@ -84,6 +84,7 @@ global_timer = GameTimer()
 death_counter = 0
 experiment_offset = 0.05  # Reset experiment offset to default
 died_to_spike = False
+fell_and_died = False
 
 
 class RLAgent:
@@ -96,25 +97,29 @@ class RLAgent:
         self.has_jump_time = True # Checks it there's a jump time
         self.onGroundAgent = True # Checks if on the ground
         self.has_jumped = False # Checks if jump was made
-        self.died_spike = False # Checks if died by spike
 
     def adjust_offset(self):
         global experiment_offset
         global died_to_spike
+        global fell
         
         # If dies to spike, have the offset be lower to account for multiple spikes in a row
-        if died_to_spike == False:
-            offset = random.uniform(0.05, 0.4)
-        else:
+        if fell_and_died:
+            offset = random.uniform(0.275,0.4)
+        elif died_to_spike:
             offset = random.uniform(0.025, 0.075)
-            died_to_spike = False
+        else:
+            offset = random.uniform(0.05, 0.4)
+        
+        fell = False
+        died_to_spike = False
         
         print(f"Offset Added: {offset}")
         experiment_offset += offset
         
         # Reset offset if it gets too high
         if experiment_offset >= 0.5:
-            experiment_offset = 0.05
+            experiment_offset = 0.05 + offset
         print(f"Offset: {experiment_offset}")
 
 
@@ -222,6 +227,11 @@ class Player(pygame.sprite.Sprite):
 
     def collide(self, yvel, platforms):
         global coins
+        global fell_and_died
+
+        local_fell = False
+
+        if self.vel.y > (15 * GRAVITY[1]): local_fell = True
 
         for p in platforms:
             if pygame.sprite.collide_rect(self, p):
@@ -239,6 +249,7 @@ class Player(pygame.sprite.Sprite):
 
                 if isinstance(p, Spike):
                     global died_to_spike
+                    if self.died: continue
                     self.died = True  # die on spike
                     died_to_spike = True
                     print("Died to Spike")
@@ -275,11 +286,14 @@ class Player(pygame.sprite.Sprite):
                         self.rect.right = p.rect.left  # dont let player go through walls
                         print("Died to Wall")
                         self.died = True
+        if self.died and local_fell:
+            fell_and_died = True
+            print("\nFELL\n")
 
     def jump(self):
         current_time = self.agent.timer.get_elapsed_time()
-        if len(jump_memory) == 0 or current_time > jump_memory[-1]:
-            self.agent.last_jump.append(current_time)
+        if len(jump_memory) == 0 or current_time > jump_memory[-1] or (len(self.agent.last_jump) > 0 and current_time > self.agent.last_jump[-1]):
+            self.agent.last_jump.append(current_time) 
         # print(f"Last Jump: {self.agent.last_jump}")
         self.agent.has_jumped = True
         self.vel.y = -self.jump_amount  # players vertical velocity is negative so ^
