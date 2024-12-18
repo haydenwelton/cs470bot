@@ -1,10 +1,3 @@
-#  filename: main.py
-#  author: Yonah Aviv
-#  date created: 2020-11-10 6:21 p.m.
-#  last modified: 2020-11-18
-#  Pydash: Similar to Geometry Dash, a rhythm based platform game, but programmed using the pygame library in Python
-
-
 """CONTROLS
 Anywhere -> ESC: exit
 Main menu -> 1: go to previous level. 2: go to next level. SPACE: start game.
@@ -71,8 +64,6 @@ import numpy as np
 import random
 import time
 
-
-
 class GameTimer:
     def __init__(self):
         self.start_time = None
@@ -86,8 +77,6 @@ class GameTimer:
         if self.start_time is None:
             return 0
         return time.time() - self.start_time
-
-
 
 
 # GLOBAL VARIABLES
@@ -104,23 +93,26 @@ class RLAgent:
         self.success_updated = False  # Flag to track if success has been updated
         self.jump_time = jump_time
         self.last_jump = []
-        self.has_jump_time = True
-        self.onGroundAgent = True
-        self.has_jumped = False
-        self.died_spike = False
+        self.has_jump_time = True # Checks it there's a jump time
+        self.onGroundAgent = True # Checks if on the ground
+        self.has_jumped = False # Checks if jump was made
+        self.died_spike = False # Checks if died by spike
 
     def adjust_offset(self):
         global experiment_offset
         global died_to_spike
-        # experiment_offset += 0.05
-        # if self.died_spike:
+        
+        # If dies to spike, have the offset be lower to account for multiple spikes in a row
         if died_to_spike == False:
             offset = random.uniform(0.05, 0.4)
         else:
             offset = random.uniform(0.025, 0.075)
             died_to_spike = False
+        
         print(f"Offset Added: {offset}")
         experiment_offset += offset
+        
+        # Reset offset if it gets too high
         if experiment_offset >= 0.5:
             experiment_offset = 0.05
         print(f"Offset: {experiment_offset}")
@@ -153,12 +145,10 @@ class RLAgent:
         if success:
             # If the jump was successful, save it in memory and reset experimentation
              # Get the largest timestamp in memory
-            # print("Entered else")
             print(f"Current time: {current_time}")
             print(f"Last Jump success: {self.last_jump}")
-            #for num in jump_memory:
-                #if ((self.last_jump - 0.05) <= num <= (self.last_jump + 0.05)) == False:
-            # print(f"Adding successful jump timestamp: {self.last_jump + 0.05}")
+            
+            # Save successful jumps and reset variable
             jump_memory.extend(self.last_jump)
             self.last_jump = []
             experiment_offset = 0.05
@@ -182,11 +172,9 @@ class RLAgent:
             self.update_jump_memory(success=True)
             self.success_updated = True
 
-
 """
 Main player class
 """
-
 
 class Player(pygame.sprite.Sprite):
     """Class for player. Holds update method, win and die variables, collisions and more."""
@@ -339,12 +327,6 @@ class Draw(pygame.sprite.Sprite):
         super().__init__(*groups)
         self.image = image
         self.rect = self.image.get_rect(topleft=pos)
-
-
-
-
-
-
 
 
 
@@ -503,21 +485,24 @@ def eval_outcome(won: bool, died: bool, agent_input: RLAgent):
         agent_input.update_jump_memory(success=False)
         death_counter += 1
         print(f"Death counter: {death_counter}\n")
+
+        # The agent has died 3 times in the relatively same spot
         if death_counter == 3:
             death_counter = 0
             experiment_offset = 0.05
             if len(jump_memory) > 0:
+                # Remove until 3 jumps before time of death
                 for _ in range(3):
                     if len(jump_memory) > 0:
                         popped = jump_memory.pop()
                         print(f"REMOVED {popped} FROM JUMP MEMORY")
+                        # If the time of the removed jump is ahead of the time of death, continue to remove
                         while popped > current_time and len(jump_memory) > 0:
                             popped = jump_memory.pop()
                             print(f"REMOVED {popped} FROM JUMP MEMORY")
         else:
             player.agent.adjust_offset()
 
-        # print("Player Died")
         global_timer.start()
 
 
@@ -565,8 +550,6 @@ def reset():
     elements = pygame.sprite.Group()
     player = Player(avatar, elements, (150, 150), player_sprite)
     init_level(block_map(level_num=levels[level]))
-
-
 
 
 def move_map():
@@ -739,7 +722,6 @@ while not done:
     # If player dies near an obstacle, attempt to learn from it by jumping earlier next time
     # Update jump memory based on success or failure of actions
 
-
     # Get current state (discretized player position and obstacle distance)
     player_x = player.rect.x // 50  # Example: discretize position
     obstacle_x = min([sprite.rect.x for sprite in elements if isinstance(sprite, Spike)], default=800) // 50
@@ -757,7 +739,6 @@ while not done:
 
     if keys[pygame.K_UP] or keys[pygame.K_SPACE]:
         player.isjump = True
-
 
 
     # Reduce the alpha of all pixels on this surface each frame.
