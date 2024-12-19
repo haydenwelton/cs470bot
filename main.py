@@ -681,7 +681,7 @@ attempts = 0
 coins = 0
 angle = 0
 #SELECT LEVEL
-level = 3
+level = 0
 
 # list
 particles = []
