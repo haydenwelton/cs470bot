@@ -14,7 +14,7 @@ We have 6 levels, 2 of which are slightly edited version of the levels included 
 
 The agent is able to successfully navigate the first 3 levels. 
 
-Currently, for the fourth level (Aviv's first level), it fails the last 2 seconds needed to pass the level. In theory, it could pass the fourth level with our added randomness, but chances are extremely low. 
+Currently, for the fourth level (Aviv's first level), it gets stuck on a certain portion. In theory, it could pass the fourth level with our added randomness, but we haven't seen it yet. 
 
 The agent is also able to pass the 5th level, thanks to added randomness. 
 
