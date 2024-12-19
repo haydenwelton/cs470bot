@@ -249,7 +249,7 @@ class Player(pygame.sprite.Sprite):
 
                 if isinstance(p, Spike):
                     global died_to_spike
-                    if self.died: continue
+                    # if self.died: continue
                     self.died = True  # die on spike
                     died_to_spike = True
                     print("Died to Spike")
@@ -292,7 +292,7 @@ class Player(pygame.sprite.Sprite):
 
     def jump(self):
         current_time = self.agent.timer.get_elapsed_time()
-        if len(jump_memory) == 0 or current_time > jump_memory[-1] or (len(self.agent.last_jump) > 0 and current_time > self.agent.last_jump[-1]):
+        if len(jump_memory) == 0 or (current_time > jump_memory[-1] + 0.05 and (len(self.agent.last_jump) == 0 or current_time > self.agent.last_jump[-1] + 0.05)):
             self.agent.last_jump.append(current_time) 
         # print(f"Last Jump: {self.agent.last_jump}")
         self.agent.has_jumped = True
@@ -681,7 +681,7 @@ attempts = 0
 coins = 0
 angle = 0
 #SELECT LEVEL
-level = 0
+level = 3
 
 # list
 particles = []
